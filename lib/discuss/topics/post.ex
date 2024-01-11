@@ -12,13 +12,21 @@ defmodule Discuss.Topics.Post do
     timestamps()
   end
 
+  defp random_string(n \\ 16) do
+    for _ <- 1..n, into: "", do: <<Enum.random('0123456789abcdef')>>
+  end
+
   defp slugify(term) when is_binary(term) do
-    term
+    base_term = term
     |> String.downcase()
-    |> String.trim()
     |> String.normalize(:nfd)
-    |> String.replace(~r/[^a-z0-9\s-]/u, "-")
+    |> String.replace(~r/[^a-z0-9\s-]/u, " ")
     |> String.replace(~r/[\s-]+/, "-", global: true)
+    |> String.replace(~r/-$/, "")
+    |> String.trim()
+    |> String.slice(0, 39)
+
+    "#{base_term}-#{random_string()}"
   end
 
   defp slugify(_), do: ""
