@@ -23,9 +23,9 @@ defmodule DiscussWeb.Router do
     post "/posts", PostController, :create
 
     get "/posts", PostController, :index
-    get "/posts/:id", PostController, :show
+    get "/posts/:slug", PostController, :show
 
-    get "/posts/:id/edit", PostController, :edit
+    get "/posts/:slug/edit", PostController, :edit
     put "/posts/:id", PostController, :update
 
     delete "/posts/:id", PostController, :delete

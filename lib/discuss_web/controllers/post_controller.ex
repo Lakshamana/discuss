@@ -19,33 +19,44 @@ defmodule DiscussWeb.PostController do
       {:ok, post} ->
         conn
         |> put_flash(:info, "Post created successfully.")
-        |> redirect(to: ~p"/posts/#{post}")
-        |> dbg()
+        |> redirect(to: ~p"/posts/#{post.slug}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, :new, changeset: changeset)
+        render(conn, :new, changeset: changeset |> dbg())
     end
   end
 
-  def show(conn, %{"id" => id}) do
-    post = Topics.get_post!(id)
-    render(conn, :show, post: post)
+  def show(conn, %{ "slug" => slug }) do
+    with {:ok, post} <- Topics.get_post_by_slug(slug) do
+      render(conn, :show, post: post)
+    else
+      {:error, :not_found} ->
+        conn
+        |> put_flash(:error, "Post not found.")
+        |> redirect(to: ~p"/posts")
+    end
   end
 
-  def edit(conn, %{"id" => id}) do
-    post = Topics.get_post!(id)
-    changeset = Topics.change_post(post)
-    render(conn, :edit, post: post, changeset: changeset)
+  def edit(conn, %{ "slug" => slug }) do
+    with {:ok, post} <- Topics.get_post_by_slug(slug) do
+      changeset = Topics.change_post(post)
+      render(conn, :edit, post: post, changeset: changeset)
+    else
+      {:error, :not_found} ->
+        conn
+        |> put_flash(:error, "Post not found.")
+        |> redirect(to: ~p"/posts")
+    end
   end
 
   def update(conn, %{"id" => id, "post" => post_params}) do
     post = Topics.get_post!(id)
 
-    case Topics.update_post(post, post_params) do
+    case Topics.update_post(post, Post.create_slug(post_params)) do
       {:ok, post} ->
         conn
         |> put_flash(:info, "Post updated successfully.")
-        |> redirect(to: ~p"/posts/#{post}")
+        |> redirect(to: ~p"/posts/#{post.slug}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, post: post, changeset: changeset)

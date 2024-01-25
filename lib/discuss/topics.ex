@@ -38,6 +38,29 @@ defmodule Discuss.Topics do
   def get_post!(id), do: Repo.get!(Post, id)
 
   @doc """
+  Gets a single post by slug.
+
+  Returns {:error, :not_found} if the Post does not exist.
+
+  ## Examples
+
+    iex> get_post_by_slug("slug")
+            {:ok, %Post{}}
+    iex> get_post_by_slug("bad_slug")
+            {:error, :not_found}
+  """
+  def get_post_by_slug(slug) do
+    query = from(post in Post, where: post.slug == ^slug)
+
+    case Repo.one(query) do
+      nil ->
+        {:error, :not_found}
+      post ->
+        {:ok, post}
+    end
+  end
+
+  @doc """
   Creates a post.
 
   ## Examples
