@@ -17,12 +17,12 @@ defmodule DiscussWeb.Router do
   scope "/", DiscussWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    get "/", PostController, :index
 
     get "/posts/new", PostController, :new
     post "/posts", PostController, :create
 
-    get "/posts", PostController, :index
+    get "/posts", Redirect, to: "/"
     get "/posts/:slug", PostController, :show
 
     get "/posts/:slug/edit", PostController, :edit
