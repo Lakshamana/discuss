@@ -4,6 +4,86 @@
 
 /* This file is for your main application CSS */
 
+:root {
+  --color-grey-dark-1: rgb(79, 80, 78);
+  --color-grey-dark-2: #4f504e72;
+
+  --color-green-dark: #277307;
+  --color-red-dark: #f72c25;
+}
+
 a > img.logo {
   filter: invert(1);
+}
+
+span.icon-plus {
+  font-weight: 200;
+  font-size: 1.5rem;
+  position: relative;
+}
+
+span.icon-plus::after {
+  content: "+";
+  font-size: 2rem;
+  position: absolute;
+  top: -0.5rem;
+}
+
+span.icon-arrow-down:hover {
+  text-shadow: 0px 0px 10px var(--color-red-dark);
+}
+
+span.icon-arrow-up:hover {
+  text-shadow: 0px 0px 10px var(--color-green-dark);
+}
+
+span.icon-arrow-up,
+span.icon-arrow-down {
+  color: var(--color-grey-dark-1);
+}
+
+span.icon-arrow-up::after {
+  content: "▲";
+}
+
+span.icon-arrow-down::after {
+  content: "▼";
+}
+
+span.icon-arrow-up.arrow-selected {
+  color: var(--color-green-dark);
+  text-shadow: none;
+}
+
+span.icon-arrow-down.arrow-selected {
+  color: var(--color-red-dark);
+  text-shadow: none;
+}
+
+span.post-vote-number {
+  padding-left: 0.3rem;
+  padding-right: 0.7rem;
+  color: var(--color-grey-dark-1);
+}
+
+span.post-vote-number::after {
+  content: "";
+  background: var(--color-grey-dark-2);
+  position: absolute;
+  right: 2rem;
+  top: 0.5rem;
+  height: 0.8rem;
+  width: 1px;
+}
+
+span.icon-comment {
+  transform: translateY(0.2rem);
+}
+
+span.icon-comment::after {
+  content: url(/images/comment.svg);
+}
+
+span.post-comment-number {
+  color: var(--color-grey-dark-1);
 }
