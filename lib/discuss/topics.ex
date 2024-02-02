@@ -55,6 +55,7 @@ defmodule Discuss.Topics do
     case Repo.one(query) do
       nil ->
         {:error, :not_found}
+
       post ->
         {:ok, post}
     end

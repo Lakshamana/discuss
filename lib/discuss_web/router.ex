@@ -17,18 +17,17 @@ defmodule DiscussWeb.Router do
   scope "/", DiscussWeb do
     pipe_through :browser
 
-    get "/", PostController, :index
+    get "/", Redirect, to: "/posts"
+    live "/posts", PostLive.Index, :index
+    live "/posts/new", PostLive.Index, :new
+    live "/posts/:slug/edit", PostLive.Index, :edit
 
-    get "/posts/new", PostController, :new
     post "/posts", PostController, :create
+    put "/posts/:slug", PostController, :update
+    delete "/posts/:slug", PostController, :delete
 
-    get "/posts", Redirect, to: "/"
-    get "/posts/:slug", PostController, :show
-
-    get "/posts/:slug/edit", PostController, :edit
-    put "/posts/:id", PostController, :update
-
-    delete "/posts/:id", PostController, :delete
+    live "/posts/:slug", PostLive.Show, :show
+    live "/posts/:slug/show/edit", PostLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

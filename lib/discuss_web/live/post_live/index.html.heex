@@ -27,8 +27,23 @@
 
 <section>
   <ul class="columns-1 p-4 sm:px-8 sm:pt-6 sm:pb-8 lg:p-4 xl:px-8 xl:pt-6 xl:pb-8 grid grid-cols-1 gap-0 text-sm leading-6">
-    <li :for={post <- @posts}>
-      <.post_view post={post} />
+    <li :for={{post_id, post} <- @streams.posts}>
+      <.live_component
+        module={DiscussWeb.PostLive.PostComponent}
+        id={post_id}
+        post={post}
+      />
     </li>
   </ul>
 </section>
+
+<.modal :if={@live_action in [:new, :edit]} id="post-modal" show on_cancel={JS.patch(~p"/posts")}>
+  <.live_component
+    module={DiscussWeb.PostLive.FormComponent}
+    id={@post.id || :new}
+    title={@page_title}
+    action={@live_action}
+    post={@post}
+    patch={~p"/posts"}
+  />
+</.modal>
