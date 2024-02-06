@@ -5,6 +5,9 @@
 /* This file is for your main application CSS */
 
 :root {
+  --color-white: #fff;
+  --color-black: #000;
+
   --color-grey-dark-1: rgb(79, 80, 78);
   --color-grey-dark-2: #4f504e72;
 
@@ -86,4 +89,86 @@ span.icon-comment::after {
 
 span.post-comment-number {
   color: var(--color-grey-dark-1);
+}
+
+span.icon-options {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - 1.5px);
+  user-select: none;
+}
+
+span.icon-options,
+span.icon-options::before,
+span.icon-options::after {
+  width: 3px;
+  height: 3px;
+  background-color: var(--color-grey-dark-1);
+}
+
+span.icon-options::before,
+span.icon-options::after {
+  content: "";
+  left: 0;
+  position: absolute;
+}
+
+span.icon-options::before {
+  top: -0.3rem;
+}
+
+span.icon-options::after {
+  bottom: -0.3rem;
+}
+
+span.icon-post-edit {
+  transform: scale(0.7) translateY(0.2rem);
+  filter: contrast(1%);
+}
+
+span.icon-post-edit::after {
+  content: url(/images/edit.svg);
+}
+
+span.icon-post-delete {
+  transform: scale(0.7) translateY(0.2rem);
+  filter: contrast(10%);
+}
+
+span.icon-post-delete::after {
+  content: url(/images/delete.svg);
+}
+
+.options-menu {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+}
+
+label.icon-options-menu {
+  width: inherit;
+  height: inherit;
+}
+
+.options-menu .options-menu__drawer {
+  outline: none;
+  visibility: hidden;
+  z-index: 9;
+  opacity: 0;
+  transition: opacity 0.3s;
+  position: absolute;
+  background-color: var(--color-white);
+  left: -6rem;
+  top: -200%;
+}
+
+.options-menu input[type=checkbox] {
+  display: none;
+  outline: none;
+}
+
+.options-menu input[type=checkbox]:checked ~ .options-menu__drawer {
+  visibility: visible;
+  opacity: 1;
 }

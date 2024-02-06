@@ -354,6 +354,15 @@ defmodule DiscussWeb.CoreComponents do
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <.error :for={msg <- @errors}><%= msg %></.error>
+      <span
+        :if={@rest[:max_length] && length(@errors) == 0}
+        class={[
+          "mt-2 gap-6 block text-xs",
+          @rest.max_length - String.length(@value || "") < 0 && "text-rose-400"
+        ]}
+      >
+        <%= @rest.max_length - String.length(to_string(@value || "")) %>
+      </span>
     </div>
     """
   end

@@ -1,4 +1,6 @@
 defmodule DiscussWeb.PostLive.FormComponent do
+  require IEx
+  alias Discuss.Topics.Post
   use DiscussWeb, :live_component
 
   alias Discuss.Topics
@@ -9,7 +11,6 @@ defmodule DiscussWeb.PostLive.FormComponent do
     <div>
       <.header>
         <%= @title %>
-        <:subtitle>Use this form to manage post records in your database.</:subtitle>
       </.header>
 
       <.simple_form
@@ -20,8 +21,7 @@ defmodule DiscussWeb.PostLive.FormComponent do
         phx-submit="save"
       >
         <.input field={@form[:title]} type="text" label="Title" />
-        <.input field={@form[:slug]} type="text" label="Slug" />
-        <.input field={@form[:body]} type="text" label="Body" />
+        <.input field={@form[:body]} type="textarea" label="Body" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Post</.button>
         </:actions>
@@ -55,14 +55,14 @@ defmodule DiscussWeb.PostLive.FormComponent do
   end
 
   defp save_post(socket, :edit, post_params) do
-    case Topics.update_post(socket.assigns.post, post_params) do
+    case Topics.update_post(socket.assigns.post, Post.create_slug(post_params)) do
       {:ok, post} ->
         notify_parent({:saved, post})
 
         {:noreply,
          socket
          |> put_flash(:info, "Post updated successfully")
-         |> push_patch(to: socket.assigns.patch)}
+         |> push_patch(to: ~p"/posts/#{post.slug}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -70,7 +70,9 @@ defmodule DiscussWeb.PostLive.FormComponent do
   end
 
   defp save_post(socket, :new, post_params) do
-    case Topics.create_post(post_params) do
+    post_with_slug = Post.create_slug(post_params)
+
+    case Topics.create_post(post_with_slug) do
       {:ok, post} ->
         notify_parent({:saved, post})
 
