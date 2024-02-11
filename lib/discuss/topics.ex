@@ -18,7 +18,14 @@ defmodule Discuss.Topics do
 
   """
   def list_posts do
-    Repo.all(Post)
+    post =
+      from p in Post,
+        left_join: c in assoc(p, :comments),
+        on: c.post_id == p.id,
+        group_by: p.id,
+        select: %{p | comment_count: count(c.id)}
+
+    Repo.all(post)
   end
 
   @doc """

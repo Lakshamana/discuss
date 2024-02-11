@@ -34,7 +34,7 @@ defmodule DiscussWeb.PostLive.PostComponent do
         </div>
         <div class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto">
           <span class="icon-comment"></span>
-          <span class="post-comment-number">10</span>
+          <span class="post-comment-number"><%= @post.comment_count %></span>
         </div>
         <div class="hover:bg-gray-100 rounded-full border-0 flex justify-center items-center py-1 outline-none options-menu">
           <input type="checkbox" id={"options-toggle-#{@post.id}"} />

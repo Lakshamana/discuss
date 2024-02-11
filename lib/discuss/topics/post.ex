@@ -9,25 +9,26 @@ defmodule Discuss.Topics.Post do
     field :title, :string
     field :body, :string
     field :slug, :string
-    has_many :comments, Comment
+    has_many :comments, Comment, foreign_key: :post_id, references: :id
     field :comment_count, :integer, virtual: true
 
     timestamps()
   end
 
   defp random_string(n \\ 16) do
-    for _ <- 1..n, into: "", do: <<Enum.random('0123456789abcdef')>>
+    for _ <- 1..n, into: "", do: <<Enum.random(~c"0123456789abcdef")>>
   end
 
   defp slugify(term) when is_binary(term) do
-    base_term = term
-    |> String.downcase()
-    |> String.normalize(:nfd)
-    |> String.replace(~r/[^a-z0-9\s-]/u, " ")
-    |> String.replace(~r/[\s-]+/, "-", global: true)
-    |> String.replace(~r/-$/, "")
-    |> String.trim()
-    |> String.slice(0, 39)
+    base_term =
+      term
+      |> String.downcase()
+      |> String.normalize(:nfd)
+      |> String.replace(~r/[^a-z0-9\s-]/u, " ")
+      |> String.replace(~r/[\s-]+/, "-", global: true)
+      |> String.replace(~r/-$/, "")
+      |> String.trim()
+      |> String.slice(0, 39)
 
     "#{base_term}-#{random_string()}"
   end
