@@ -1,4 +1,5 @@
 defmodule Discuss.Topics.Post do
+  alias Discuss.Topics.Comment
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -8,6 +9,8 @@ defmodule Discuss.Topics.Post do
     field :title, :string
     field :body, :string
     field :slug, :string
+    has_many :comments, Comment
+    field :comment_count, :integer, virtual: true
 
     timestamps()
   end
@@ -31,6 +34,15 @@ defmodule Discuss.Topics.Post do
 
   defp slugify(_), do: ""
 
+  @doc """
+  Create a slug from the title and assign it to the `slug` field.
+
+  Returns a map with the `slug` field set.
+
+    ## Examples
+        iex> Post.create_slug(%{"title" => "My First Post"})
+        %{"title" => "My First Post", "slug" => "wawa-cat-64469dad10ee882a"}
+  """
   def create_slug(%{"title" => title} = params) do
     Map.put(params, "slug", slugify(title))
   end

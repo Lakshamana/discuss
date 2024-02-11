@@ -14,10 +14,11 @@ defmodule DiscussWeb.PostLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
+  defp apply_action(socket, :edit, %{"slug" => slug}) do
+    {:ok, post} = Topics.get_post_by_slug(slug)
     socket
     |> assign(:page_title, "Edit Post")
-    |> assign(:post, Topics.get_post!(id))
+    |> assign(:post, post)
   end
 
   defp apply_action(socket, :new, _params) do
@@ -33,8 +34,8 @@ defmodule DiscussWeb.PostLive.Index do
   end
 
   @impl true
-  def handle_info({DiscussWeb.PostLive.FormComponent, {:saved, post}}, socket) do
-    {:noreply, stream_insert(socket, :posts, post)}
+  def handle_info({DiscussWeb.PostLive.FormComponent, {:saved, _}}, socket) do
+    {:noreply, stream(socket, :posts, Topics.list_posts())}
   end
 
   @impl true
@@ -42,6 +43,6 @@ defmodule DiscussWeb.PostLive.Index do
     post = Topics.get_post!(id)
     {:ok, _} = Topics.delete_post(post)
 
-    {:noreply, stream_delete(socket, :posts, post)}
+    {:noreply, stream(socket, :posts, Topics.list_posts())}
   end
 end

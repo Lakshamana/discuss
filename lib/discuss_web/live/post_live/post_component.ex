@@ -22,7 +22,6 @@ defmodule DiscussWeb.PostLive.PostComponent do
           </div>
         </div>
       </.link>
-
       <div class="flex flex-row justify-start mt-3 text-sm items-center">
         <div class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2">
           <button phx-click="voted_up" phx-target={@myself}>
@@ -45,12 +44,18 @@ defmodule DiscussWeb.PostLive.PostComponent do
           <div class="options-menu__drawer border rounded-md">
             <ul role="list" class="cursor-pointer">
               <li class="flex justify-between items-center pb-1 hover:bg-gray-100">
-                <div class="flex space-x-1 items-center p-2">
-                  <span class="icon-post-edit"></span>
-                  <span class="text-sm">Edit</span>
-                </div>
+                <.link patch={~p"/posts/#{@post.slug}/edit"}>
+                  <div class="flex space-x-1 items-center p-2">
+                    <span class="icon-post-edit"></span>
+                    <span class="text-sm">Edit</span>
+                  </div>
+                </.link>
               </li>
-              <li class="flex justify-between items-center hover:bg-gray-100">
+              <li
+                class="flex justify-between items-center hover:bg-gray-100"
+                phx-click={JS.push("delete", value: %{id: @post.id}) |> hide("##{@id}")}
+                data-confirm="Are you sure?"
+              >
                 <div class="flex space-x-1 items-center p-2">
                   <span class="icon-post-delete"></span>
                   <span class="text-sm">Delete</span>

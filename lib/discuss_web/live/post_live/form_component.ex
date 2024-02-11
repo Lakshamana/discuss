@@ -1,5 +1,4 @@
 defmodule DiscussWeb.PostLive.FormComponent do
-  require IEx
   alias Discuss.Topics.Post
   use DiscussWeb, :live_component
 
@@ -61,8 +60,8 @@ defmodule DiscussWeb.PostLive.FormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Post updated successfully")
-         |> push_patch(to: ~p"/posts/#{post.slug}")}
+          |> put_flash(:info, "Post updated successfully")
+          |> push_navigate(to: ~p"/posts/#{post.slug}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}

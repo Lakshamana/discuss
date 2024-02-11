@@ -24,4 +24,19 @@ defmodule Discuss.TopicsFixtures do
 
     post
   end
+
+  @doc """
+  Generate a comment.
+  """
+  def comment_fixture(attrs \\ %{}) do
+    {:ok, comment} =
+      attrs
+      |> Enum.into(%{
+        content: "some content",
+        deleted_at: ~U[2024-02-01 14:40:00Z]
+      })
+      |> Discuss.Topics.create_comment()
+
+    comment
+  end
 end

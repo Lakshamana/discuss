@@ -11,8 +11,12 @@
   --color-grey-dark-1: rgb(79, 80, 78);
   --color-grey-dark-2: #4f504e72;
 
-  --color-green-dark: #277307;
-  --color-red-dark: #f72c25;
+  --color-green-light-1: #28E603;
+  --color-green-light-2: #0dd377;
+  --color-green-dark: #066036;
+  --color-red-dark: #EC0413;
+  --color-blue-dark-1: #090987;
+  --color-blue-dark-2: #0d37d3;
 }
 
 a > img.logo {
@@ -37,7 +41,7 @@ span.icon-arrow-down:hover {
 }
 
 span.icon-arrow-up:hover {
-  text-shadow: 0px 0px 10px var(--color-green-dark);
+  text-shadow: 0px 0px 10px var(--color-green-light-1);
 }
 
 span.icon-arrow-up,
@@ -54,7 +58,7 @@ span.icon-arrow-down::after {
 }
 
 span.icon-arrow-up.arrow-selected {
-  color: var(--color-green-dark);
+  color: var(--color-green-light-1);
   text-shadow: none;
 }
 
@@ -171,4 +175,16 @@ label.icon-options-menu {
 .options-menu input[type=checkbox]:checked ~ .options-menu__drawer {
   visibility: visible;
   opacity: 1;
+}
+
+.border-color--red:hover {
+  border-left-color: var(--color-red-dark);
+}
+
+.border-color--green:hover {
+  border-left-color: var(--color-green-light-2);
+}
+
+.border-color--blue:hover {
+  border-left-color: var(--color-blue-dark-2);
 }

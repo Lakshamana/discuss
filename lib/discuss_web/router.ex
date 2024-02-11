@@ -22,10 +22,6 @@ defmodule DiscussWeb.Router do
     live "/posts/new", PostLive.Index, :new
     live "/posts/:slug/edit", PostLive.Index, :edit
 
-    post "/posts", PostController, :create
-    put "/posts/:slug", PostController, :update
-    delete "/posts/:slug", PostController, :delete
-
     live "/posts/:slug", PostLive.Show, :show
     live "/posts/:slug/show/edit", PostLive.Show, :edit
   end

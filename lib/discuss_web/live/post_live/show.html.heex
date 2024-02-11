@@ -1,22 +1,93 @@
-<.header>
-  Post <%= @post.id %>
-  <:subtitle>This is a post record from your database.</:subtitle>
-  <:actions>
-    <.link patch={~p"/posts/#{@post.slug}/show/edit"} phx-click={JS.push_focus()}>
-      <.button>Edit post</.button>
-    </.link>
-  </:actions>
+<.header class="mb-4">
+  <%= @post.title %>
 </.header>
 
-<.list>
-  <:item title="Title"><%= @post.title %></:item>
-  <:item title="Slug"><%= @post.slug %></:item>
-  <:item title="Body"><%= @post.body %></:item>
-</.list>
+<div>
+  <div class="block relative cursor-pointer">
+    <div>
+      <dl class="flex flex-column">
+        <dt class="sr-only">Body</dt>
+        <dd class="text-wrap text-sm"><%= @post.body %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="flex flex-row justify-start my-6 text-sm items-center">
+    <div class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2">
+      <button phx-click="upvote">
+        <span class={["icon-arrow-up", (@voted_up || false) && "arrow-selected"]}></span>
+      </button>
+      <span class="post-vote-number"><%= @post_vote_count %></span>
+      <button phx-click="downvote">
+        <span class={["icon-arrow-down", (@voted_down || false) && "arrow-selected"]}></span>
+      </button>
+    </div>
+    <div class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto">
+      <span class="icon-comment"></span>
+      <span class="post-comment-number"><%= @post.comment_count %></span>
+    </div>
+    <div class="hover:bg-gray-100 rounded-full border-0 flex justify-center items-center py-1 outline-none options-menu">
+      <input type="checkbox" id={"options-toggle-#{@post.id}"} />
+      <label class="icon-options-menu" for={"options-toggle-#{@post.id}"}>
+        <span class="icon-options">&nbsp;</span>
+      </label>
+      <div class="options-menu__drawer border rounded-md">
+        <ul role="list" class="cursor-pointer">
+          <li class="flex justify-between items-center pb-1 hover:bg-gray-100">
+            <.link patch={~p"/posts/#{@post.slug}/show/edit"}>
+              <div class="flex space-x-1 items-center p-2 mx-2">
+                <span class="icon-post-edit"></span>
+                <span class="text-sm">Edit</span>
+              </div>
+            </.link>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-start">
+    <button
+      :if={!@is_commenting}
+      class="cursor-text py-2 text-gray-700/80 bg-gray-100 w-1/4 rounded-md border-0 text-sm outline-none"
+      phx-click="show_comment_textarea"
+      >
+      Comment...
+    </button>
+  </div>
+  <.live_component
+    :if={@is_commenting}
+    module={DiscussWeb.PostLive.CommentComponent}
+    id={:new}
+    comment={nil}
+    is_editing={@is_commenting}
+  />
+
+  <section>
+    <ul class="columns-1 sm:px-6 sm:pt-6 sm:pb-6 lg:p-4 xl:px-8 xl:pt-6 xl:pb-6 grid grid-cols-1 gap-0 text-sm leading-6">
+      <li class="hidden only:inline-block font-mono">
+        <p>No comments yet. Be the first to comment!</p>
+      </li>
+
+      <li :for={{comment_id, comment} <- @streams.comments}>
+        <.live_component
+          module={DiscussWeb.PostLive.CommentComponent}
+          id={comment_id}
+          comment={comment}
+        />
+      </li>
+    </ul>
+  </section>
+</div>
 
 <.back navigate={~p"/posts"}>Back to posts</.back>
 
-<.modal :if={@live_action == :edit} id="post-modal" show on_cancel={JS.patch(~p"/posts/#{@post.slug}")}>
+<.modal
+  :if={@live_action == :edit}
+  id="post-modal"
+  show
+  on_cancel={JS.patch(~p"/posts/#{@post.slug}")}
+>
   <.live_component
     module={DiscussWeb.PostLive.FormComponent}
     id={@post.id}
