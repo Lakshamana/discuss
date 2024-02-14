@@ -35,7 +35,7 @@ defmodule DiscussWeb.PostLive.CommentComponent do
         <div class="flex space-x-1 px-md py-1">
           <button
             type="button"
-            class="rounded-lg border px-3 text-gray-700/80 space-x-1 flex items-center relative py-1"
+            class="rounded-lg border border-zinc-400 px-3 text-zinc-900 space-x-1 flex items-center relative py-1"
             phx-click="cancel_comment"
             phx-target={@myself}
           >
