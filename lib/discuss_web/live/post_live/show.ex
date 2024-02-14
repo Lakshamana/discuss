@@ -87,7 +87,6 @@ defmodule DiscussWeb.PostLive.Show do
   def handle_info({CommentComponent, %{id: nil} = comment_params}, socket) do
     save_comment_params = Map.put(comment_params, :post_id, socket.assigns.post.id)
 
-    require IEx; IEx.pry
     case Topics.create_comment(save_comment_params) do
       {:ok, _comment} ->
         {

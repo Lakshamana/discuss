@@ -68,13 +68,33 @@ defmodule DiscussWeb.PostLive.CommentComponent do
             </button>
           </div>
           <button
-            class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto cursor-pointer"
+            class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2 cursor-pointer"
             type="button"
             phx-click="reply_comment"
             phx-target={@myself}
           >
             <span class="post-comment-number">Reply</span>
             <span class="icon-comment"></span>
+          </button>
+          <button
+            :if={!@show_replies && @comment.reply_count > 0}
+            class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto cursor-pointer"
+            type="button"
+            phx-click="show_replies"
+            phx-target={@myself}
+          >
+            <span class="icon-reply"></span>
+            <span class="reply-btn">Show <%= @comment.reply_count %> replie(s)</span>
+          </button>
+          <button
+            :if={@show_replies && @comment.reply_count > 0}
+            class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto cursor-pointer"
+            type="button"
+            phx-click="show_replies"
+            phx-target={@myself}
+          >
+            <span class="icon-reply icon-reply__collapse"></span>
+            <span class="reply-btn">Collapse <%= @comment.reply_count %> replie(s)</span>
           </button>
           <div class="hover:bg-gray-100 rounded-full border-0 flex justify-center items-center py-1 outline-none options-menu">
             <input type="checkbox" id={"options-toggle-#{@comment.id}"} />
@@ -108,18 +128,11 @@ defmodule DiscussWeb.PostLive.CommentComponent do
             </div>
           </div>
         </div>
-        <div :if={!@show_replies && @comment.reply_count > 0} class="flex mt-4 justify-start">
-          <button
-            class="cursor-text py-2 text-gray-700/80 bg-gray-100 w-1/4 rounded-md border-0 text-sm outline-none"
-            phx-click="show_replies"
-            phx-target={@myself}
-          >
-            <span :if={@comment.reply_count == 1}>show <%= @comment.reply_count %> reply</span>
-            <span :if={@comment.reply_count > 1}>show <%= @comment.reply_count %> replies</span>
-          </button>
-        </div>
       </div>
-      <div :if={@show_replies || @is_replying} class="flex flex-row justify-start text-sm items-center mt-3">
+      <div
+        :if={@show_replies || @is_replying}
+        class="flex flex-row justify-start text-sm items-center mt-3"
+      >
         <div style={"margin-left: #{3 * (@level + 1)}px;"}></div>
         <section class="w-full">
           <ul>

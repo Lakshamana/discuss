@@ -11,10 +11,10 @@
   --color-grey-dark-1: rgb(79, 80, 78);
   --color-grey-dark-2: #4f504e72;
 
-  --color-green-light-1: #28E603;
+  --color-green-light-1: #28e603;
   --color-green-light-2: #0dd377;
   --color-green-dark: #066036;
-  --color-red-dark: #EC0413;
+  --color-red-dark: #ec0413;
   --color-blue-dark-1: #090987;
   --color-blue-dark-2: #0d37d3;
 }
@@ -95,6 +95,26 @@ span.post-comment-number {
   color: var(--color-grey-dark-1);
 }
 
+span.reply-btn {
+  color: var(--color-grey-dark-1);
+}
+
+span.icon-reply {
+  transform: translateY(0.1rem);
+}
+
+span.icon-reply::after {
+  content: url(/images/chevron-right.svg);
+}
+
+span.icon-reply.icon-reply__collapse {
+  transform: rotate(270deg);
+}
+
+span.icon-reply.icon-reply__collapse::after {
+  transform: rotate(270deg);
+}
+
 span.icon-options {
   position: absolute;
   top: 50%;
@@ -167,12 +187,12 @@ label.icon-options-menu {
   top: -200%;
 }
 
-.options-menu input[type=checkbox] {
+.options-menu input[type="checkbox"] {
   display: none;
   outline: none;
 }
 
-.options-menu input[type=checkbox]:checked ~ .options-menu__drawer {
+.options-menu input[type="checkbox"]:checked ~ .options-menu__drawer {
   visibility: visible;
   opacity: 1;
 }
