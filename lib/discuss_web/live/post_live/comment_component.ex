@@ -78,7 +78,7 @@ defmodule DiscussWeb.PostLive.CommentComponent do
           </button>
           <button
             :if={!@show_replies && @comment.reply_count > 0}
-            class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto cursor-pointer"
+            class="px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto cursor-pointer hover:underline"
             type="button"
             phx-click="show_replies"
             phx-target={@myself}
@@ -88,7 +88,7 @@ defmodule DiscussWeb.PostLive.CommentComponent do
           </button>
           <button
             :if={@show_replies && @comment.reply_count > 0}
-            class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto cursor-pointer"
+            class="px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto cursor-pointer hover:underline"
             type="button"
             phx-click="show_replies"
             phx-target={@myself}
