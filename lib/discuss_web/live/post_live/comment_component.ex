@@ -53,8 +53,8 @@ defmodule DiscussWeb.PostLive.CommentComponent do
       </div>
       <div :if={@comment && !@is_editing}>
         <div>
-          <p class="py-2 pl-2 text-zinc-700">
-            <%= @comment.content %>
+          <p class="mt-3 py-2 pl-2 text-zinc-700">
+            <%= if !@comment.deleted_at, do: @comment.content, else: "[deleted]" %>
           </p>
         </div>
         <div class="flex flex-row justify-start text-xs items-center">
@@ -76,6 +76,7 @@ defmodule DiscussWeb.PostLive.CommentComponent do
             <span class="post-comment-number">Reply</span>
             <span class="icon-comment"></span>
           </button>
+          <div :if={@comment.reply_count == 0} class="mr-auto"></div>
           <button
             :if={!@show_replies && @comment.reply_count > 0}
             class="px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto cursor-pointer hover:underline"
@@ -153,6 +154,9 @@ defmodule DiscussWeb.PostLive.CommentComponent do
                 comment={reply}
                 parent_comment_id={@comment.id}
                 level={@level + 1}
+                on_delete={
+                  &send_update(DiscussWeb.PostLive.CommentComponent, id: @id, deleted_comment: &1)
+                }
               />
             </li>
           </ul>
@@ -175,6 +179,8 @@ defmodule DiscussWeb.PostLive.CommentComponent do
        content: if(socket.assigns[:comment], do: socket.assigns.comment.content, else: ""),
        voted_up: false,
        voted_down: false,
+       parent_comment_id: nil,
+       on_delete: if(socket.assigns[:on_delete], do: socket.assigns.on_delete, else: nil),
        comment_votes: 0
      )}
   end
@@ -187,6 +193,14 @@ defmodule DiscussWeb.PostLive.CommentComponent do
      socket
      |> assign(assigns)
      |> assign_form(changeset)}
+  end
+
+  @impl true
+  def update(%{deleted_comment: comment}, socket) do
+    {:ok,
+      socket
+      |> assign(replies: Enum.filter(socket.assigns.replies, &(comment.id != &1.id)))
+      |> assign(comment: %{socket.assigns.comment | reply_count: socket.assigns.comment.reply_count - 1})}
   end
 
   @impl true
@@ -285,6 +299,19 @@ defmodule DiscussWeb.PostLive.CommentComponent do
   @impl true
   def handle_event("reply_comment", _, socket) do
     {:noreply, assign(socket, is_replying: !socket.assigns.is_replying)}
+  end
+
+  @impl true
+  def handle_event("delete", %{"id" => comment_id}, socket) do
+    comment = Topics.get_comment!(comment_id)
+
+    if socket.assigns.on_delete do
+      socket.assigns.on_delete.(comment)
+    end
+
+    {:ok, _} = Topics.delete_comment(comment)
+
+    {:noreply, socket}
   end
 
   defp assign_form(socket, form) do

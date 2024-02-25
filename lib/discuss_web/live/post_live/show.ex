@@ -112,6 +112,11 @@ defmodule DiscussWeb.PostLive.Show do
   end
 
   @impl true
+  def handle_info(%{deleted_comment: deleted_comment}, socket) do
+    {:noreply, socket |> stream_delete(:comments, deleted_comment)}
+  end
+
+  @impl true
   def handle_info({CommentComponent, "cancel_comment"}, socket) do
     {:noreply, assign(socket, is_commenting: false)}
   end

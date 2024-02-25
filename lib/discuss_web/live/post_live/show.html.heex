@@ -51,7 +51,7 @@
       :if={!@is_commenting}
       class="cursor-text py-2 text-gray-700/80 bg-gray-100 w-1/4 rounded-md border-0 text-sm outline-none"
       phx-click="show_comment_textarea"
-      >
+    >
       Comment...
     </button>
   </div>
@@ -74,6 +74,7 @@
           module={DiscussWeb.PostLive.CommentComponent}
           id={comment_id}
           comment={comment}
+          on_delete={&send(self(), &1)}
         />
       </li>
     </ul>

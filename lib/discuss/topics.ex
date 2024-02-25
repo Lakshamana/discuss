@@ -289,7 +289,9 @@ defmodule Discuss.Topics do
 
   """
   def delete_comment(%Comment{} = comment) do
-    Repo.delete(comment)
+    comment
+    |> Comment.changeset(%{deleted_at: DateTime.utc_now()})
+    |> Repo.update()
   end
 
   @doc """
