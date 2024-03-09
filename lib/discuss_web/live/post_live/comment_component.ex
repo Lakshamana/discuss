@@ -1,6 +1,6 @@
 defmodule DiscussWeb.PostLive.CommentComponent do
-  alias Discuss.Topics
   alias Discuss.Topics.Comment
+  alias Discuss.Topics
 
   use DiscussWeb, :live_component
 
@@ -54,11 +54,17 @@ defmodule DiscussWeb.PostLive.CommentComponent do
       <div :if={@comment && !@is_editing}>
         <div>
           <p class="mt-3 py-2 pl-2 text-zinc-700">
-            <%= if !@comment.deleted_at, do: @comment.content, else: "[deleted]" %>
+            <span :if={@comment.deleted_at}><b>[deleted]</b></span>
+            <span :if={!@comment.deleted_at}>
+              <%= @comment.content %>
+            </span>
           </p>
         </div>
         <div class="flex flex-row justify-start text-xs items-center">
-          <div class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2">
+          <div class={[
+            "bg-default rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2",
+            @comment.deleted_at && "btn-disabled"
+          ]}>
             <button phx-click="upvote" phx-target={@myself}>
               <span class={["icon-arrow-up", (@voted_up || false) && "arrow-selected"]}></span>
             </button>
@@ -68,10 +74,14 @@ defmodule DiscussWeb.PostLive.CommentComponent do
             </button>
           </div>
           <button
-            class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2 cursor-pointer"
+            class={[
+              "bg-default rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2 cursor-pointer",
+              @comment.deleted_at && "btn-disabled"
+            ]}
             type="button"
             phx-click="reply_comment"
             phx-target={@myself}
+            disabled={@comment.deleted_at}
           >
             <span class="post-comment-number">Reply</span>
             <span class="icon-comment"></span>
@@ -97,15 +107,15 @@ defmodule DiscussWeb.PostLive.CommentComponent do
             <span class="icon-reply icon-reply__collapse"></span>
             <span class="reply-btn">Collapse <%= @comment.reply_count %> replie(s)</span>
           </button>
-          <div class="hover:bg-gray-100 rounded-full border-0 flex justify-center items-center py-1 outline-none options-menu">
+          <div class="hover:bg-default rounded-full flex justify-center items-center py-1 outline-none options-menu">
             <input type="checkbox" id={"options-toggle-#{@comment.id}"} />
             <label class="icon-options-menu" for={"options-toggle-#{@comment.id}"}>
               <span class="icon-options">&nbsp;</span>
             </label>
-            <div class="options-menu__drawer border rounded-md">
+            <div class="options-menu__drawer">
               <ul role="list" class="cursor-pointer">
                 <li
-                  class="flex justify-between items-center pb-1 hover:bg-gray-100"
+                  class="flex justify-between items-center pb-1 hover:bg-default"
                   phx-click="edit_comment"
                   phx-target={@myself}
                 >
@@ -115,10 +125,13 @@ defmodule DiscussWeb.PostLive.CommentComponent do
                   </div>
                 </li>
                 <li
-                  class="flex justify-between items-center hover:bg-gray-100"
-                  phx-click={JS.push("delete", value: %{id: @comment.id}) |> hide("##{@id}")}
+                  class={[
+                    "flex justify-between items-center hover:bg-default",
+                    @comment.deleted_at && "btn-disabled"
+                  ]}
+                  phx-click={!@comment.deleted_at && JS.push("delete", value: %{id: @comment.id}) |> hide("##{@id}")}
                   phx-target={@myself}
-                  data-confirm="Are you sure?"
+                  data-confirm={!@comment.deleted_at && "Are you sure?"}
                 >
                   <div class="flex space-x-1 items-center p-2">
                     <span class="icon-post-delete"></span>
@@ -196,11 +209,10 @@ defmodule DiscussWeb.PostLive.CommentComponent do
   end
 
   @impl true
-  def update(%{deleted_comment: comment}, socket) do
-    {:ok,
-      socket
-      |> assign(replies: Enum.filter(socket.assigns.replies, &(comment.id != &1.id)))
-      |> assign(comment: %{socket.assigns.comment | reply_count: socket.assigns.comment.reply_count - 1})}
+  def update(%{deleted_comment: _child_comment}, socket) do
+    replies = Topics.get_replies_for_comment(socket.assigns.comment.id)
+
+    {:ok, socket |> assign(replies: replies)}
   end
 
   @impl true
@@ -237,12 +249,12 @@ defmodule DiscussWeb.PostLive.CommentComponent do
     {
       :noreply,
       assign(socket, %{
-        voted_up: false,
-        voted_down: !socket.assigns.voted_down,
+        voted_up: !socket.assigns.voted_up,
+        voted_down: false,
         comment_votes:
           cond do
             !voted_up && !voted_down -> comment_votes + 1
-            !voted_up && voted_down -> comment_votes - 1
+            voted_up && !voted_down -> comment_votes - 1
             true -> comment_votes + 2
           end
       })
@@ -305,9 +317,8 @@ defmodule DiscussWeb.PostLive.CommentComponent do
   def handle_event("delete", %{"id" => comment_id}, socket) do
     comment = Topics.get_comment!(comment_id)
 
-    if socket.assigns.on_delete do
+    socket.assigns.on_delete &&
       socket.assigns.on_delete.(comment)
-    end
 
     {:ok, _} = Topics.delete_comment(comment)
 

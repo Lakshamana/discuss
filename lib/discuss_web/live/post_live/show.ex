@@ -112,8 +112,10 @@ defmodule DiscussWeb.PostLive.Show do
   end
 
   @impl true
-  def handle_info(%{deleted_comment: deleted_comment}, socket) do
-    {:noreply, socket |> stream_delete(:comments, deleted_comment)}
+  def handle_info(%{event: "delete_comment", post_id: _}, socket) do
+    {:ok, post} = Topics.get_post_by_slug_with_comments(socket.assigns.post.slug)
+
+    {:noreply, socket |> stream(:comments, post.comments)}
   end
 
   @impl true

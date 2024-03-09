@@ -23,7 +23,7 @@ defmodule Discuss.Topics do
         left_join: c in assoc(p, :comments),
         on: c.post_id == p.id,
         group_by: p.id,
-        select: %{p | comment_count: count(c.id)}
+        select: %{p | comment_count: count(c.id) |> filter(is_nil(c.deleted_at))}
 
     Repo.all(post)
   end
@@ -99,7 +99,7 @@ defmodule Discuss.Topics do
         preload: [comments: ^comments_replies_count],
         where: p.slug == ^slug,
         group_by: p.id,
-        select: %{p | comment_count: count(c.id)}
+        select: %{p | comment_count: count(c.id) |> filter(is_nil(c.deleted_at))}
 
     case Repo.one(post) do
       nil ->
@@ -127,7 +127,7 @@ defmodule Discuss.Topics do
         on: r.parent_id == c.id,
         where: c.parent_id == ^comment_id,
         group_by: c.id,
-        select: %{c | reply_count: count(r.id)}
+        select: %{c | reply_count: count(r.id) |> filter(not is_nil(r.id))}
 
     Repo.all(query)
   end

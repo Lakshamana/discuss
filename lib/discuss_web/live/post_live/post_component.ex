@@ -23,7 +23,7 @@ defmodule DiscussWeb.PostLive.PostComponent do
         </div>
       </.link>
       <div class="flex flex-row justify-start mt-3 text-sm items-center">
-        <div class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2">
+        <div class="bg-default rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2">
           <button phx-click="voted_up" phx-target={@myself}>
             <span class={["icon-arrow-up", (@voted_up || false) && "arrow-selected"]}></span>
           </button>
@@ -32,18 +32,18 @@ defmodule DiscussWeb.PostLive.PostComponent do
             <span class={["icon-arrow-down", (@voted_down || false) && "arrow-selected"]}></span>
           </button>
         </div>
-        <div class="bg-gray-100 rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto">
+        <div class="bg-default rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto">
           <span class="icon-comment"></span>
           <span class="post-comment-number"><%= @post.comment_count %></span>
         </div>
-        <div class="hover:bg-gray-100 rounded-full border-0 flex justify-center items-center py-1 outline-none options-menu">
+        <div class="hover:bg-default rounded-full border-0 flex justify-center items-center py-1 outline-none options-menu">
           <input type="checkbox" id={"options-toggle-#{@post.id}"} />
           <label class="icon-options-menu" for={"options-toggle-#{@post.id}"}>
             <span class="icon-options">&nbsp;</span>
           </label>
           <div class="options-menu__drawer border rounded-md">
             <ul role="list" class="cursor-pointer">
-              <li class="flex justify-between items-center pb-1 hover:bg-gray-100">
+              <li class="flex justify-between items-center pb-1 hover:bg-default">
                 <.link patch={~p"/posts/#{@post.slug}/edit"}>
                   <div class="flex space-x-1 items-center p-2">
                     <span class="icon-post-edit"></span>
@@ -52,7 +52,7 @@ defmodule DiscussWeb.PostLive.PostComponent do
                 </.link>
               </li>
               <li
-                class="flex justify-between items-center hover:bg-gray-100"
+                class="flex justify-between items-center hover:bg-default"
                 phx-click={JS.push("delete", value: %{id: @post.id}) |> hide("##{@id}")}
                 data-confirm="Are you sure?"
               >

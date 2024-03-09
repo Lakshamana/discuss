@@ -10,6 +10,8 @@
 
   --color-grey-dark-1: rgb(79, 80, 78);
   --color-grey-dark-2: #4f504e72;
+  --color-grey-dark-3: #0000004d;
+  --color-disabled: #0000000d;
 
   --color-green-light-1: #28e603;
   --color-green-light-2: #0dd377;
@@ -115,6 +117,14 @@ span.icon-reply.icon-reply__collapse::after {
   transform: rotate(270deg);
 }
 
+div.btn-disabled,
+li.btn-disabled,
+button.btn-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: var(--color-disabled);
+}
+
 span.icon-options {
   position: absolute;
   top: 50%;
@@ -176,6 +186,8 @@ label.icon-options-menu {
 }
 
 .options-menu .options-menu__drawer {
+  border: 1px solid var(--color-grey-dark-3);
+  border-radius: .3em;
   outline: none;
   visibility: hidden;
   z-index: 9;
