@@ -1,6 +1,6 @@
 defmodule DiscussWeb.PostLive.CommentComponent do
-  alias Discuss.Topics
   alias Discuss.Topics.Comment
+  alias Discuss.Topics
 
   use DiscussWeb, :live_component
 
@@ -198,9 +198,11 @@ defmodule DiscussWeb.PostLive.CommentComponent do
   @impl true
   def update(%{deleted_comment: comment}, socket) do
     {:ok,
-      socket
-      |> assign(replies: Enum.filter(socket.assigns.replies, &(comment.id != &1.id)))
-      |> assign(comment: %{socket.assigns.comment | reply_count: socket.assigns.comment.reply_count - 1})}
+     socket
+     |> assign(replies: Enum.filter(socket.assigns.replies, &(comment.id != &1.id)))
+     |> assign(
+       comment: %{socket.assigns.comment | reply_count: socket.assigns.comment.reply_count - 1}
+     )}
   end
 
   @impl true
