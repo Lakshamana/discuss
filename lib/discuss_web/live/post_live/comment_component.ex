@@ -129,7 +129,10 @@ defmodule DiscussWeb.PostLive.CommentComponent do
                     "flex justify-between items-center hover:bg-default",
                     @comment.deleted_at && "btn-disabled"
                   ]}
-                  phx-click={!@comment.deleted_at && JS.push("delete", value: %{id: @comment.id}) |> hide("##{@id}")}
+                  phx-click={
+                    !@comment.deleted_at &&
+                      JS.push("delete", value: %{id: @comment.id}) |> hide("##{@id}")
+                  }
                   phx-target={@myself}
                   data-confirm={!@comment.deleted_at && "Are you sure?"}
                 >
