@@ -1,5 +1,25 @@
 # Discuss
 
+## About
+This is a simple, reddit-inspired, forum application built with Elixir and Phoenix. It is a project that I am working on to learn more about Elixir and Phoenix, mainly regarding message passing and how elixir concurrency model applies to Phoenix LiveViews and LiveComponents. Other tasks is to offer Elixir newcomers a hint about how component nesting, component recursion, and message passing between parent and child components work, as well as studying Ecto query model and functional approaches to data manipulation.
+
+## TODO
+[x] Create, list, update, delete posts
+[x] Make posts accessible via their own page using post slugs
+[x] Create, list, update and delete post comments (with counts)
+[x] Show/collapse child comments section
+[x] Add post and comment validation
+[] Post/comment votes (up/down voting strategy)
+[] Add User management system (authentication, authorization, etc.)
+[] Attach post and comments to its authors (so we know whether one can edit/delete a comment or post)
+[] User settings (enable only dark-mode by now)
+[] Deployment?
+
+## Contributing
+This repo sure accepts PRs, but they'll need to be aligned with the project goals and roadmap. If you have any suggestions, please open an issue to discuss it.
+
+## Development
+
 To start your Phoenix server:
 
   * Run `mix setup` to install and setup dependencies
