@@ -4,9 +4,18 @@ defmodule Discuss.Topics do
   """
 
   import Ecto.Query, warn: false
+  alias Discuss.Topics.PostVote
   alias Discuss.Repo
 
   alias Discuss.Topics.{Post, Comment}
+
+  defp maybe_auth_query?(query, user_id, callback) do
+    if user_id do
+      callback.(query)
+    else
+      query
+    end
+  end
 
   @doc """
   Returns the list of posts.
@@ -17,15 +26,32 @@ defmodule Discuss.Topics do
       [%Post{}, ...]
 
   """
-  def list_posts do
-    post =
+  def list_posts(user_id \\ nil) do
+    query =
       from p in Post,
-        left_join: c in assoc(p, :comments),
-        on: c.post_id == p.id,
+        left_join: c in assoc(p, :comments), on: c.post_id == p.id,
+        left_join: pv in assoc(p, :votes), on: pv.post_id == p.id,
         group_by: p.id,
-        select: %{p | comment_count: count(c.id) |> filter(is_nil(c.deleted_at))}
+        select_merge: %{
+          p
+          | comment_count: count(c.id) |> filter(is_nil(c.deleted_at)),
+            score:
+              fragment(
+                "coalesce(sum(distinct case ?.mode when 'upvote' then 1 when 'downvote' then -1 end), 0)",
+                pv
+              )
+        }
 
-    Repo.all(post)
+    query =
+      maybe_auth_query?(
+        query,
+        user_id,
+        &(&1
+          |> join(:left, [p], pv2 in PostVote, on: pv2.post_id == p.id and pv2.user_id == ^user_id)
+          |> select_merge([p, ..., pv2], %{user_voted: max(pv2.mode)}))
+      )
+
+    Repo.all(query)
   end
 
   @doc """
@@ -83,7 +109,7 @@ defmodule Discuss.Topics do
     iex> get_post_by_slug_with_comments("bad_slug")
             {:error, :not_found}
   """
-  def get_post_by_slug_with_comments(slug) do
+  def get_post_by_slug_with_comments(slug, user_id \\ nil) do
     comments_replies_count =
       from c in Comment,
         left_join: r in assoc(c, :replies),
@@ -92,16 +118,33 @@ defmodule Discuss.Topics do
         group_by: c.id,
         select: %{c | reply_count: count(r.id)}
 
-    post =
+    query =
       from p in Post,
-        left_join: c in assoc(p, :comments),
-        on: c.post_id == p.id,
+        left_join: c in assoc(p, :comments), on: c.post_id == p.id,
+        left_join: pv in assoc(p, :votes), on: pv.post_id == p.id,
         preload: [comments: ^comments_replies_count],
         where: p.slug == ^slug,
         group_by: p.id,
-        select: %{p | comment_count: count(c.id) |> filter(is_nil(c.deleted_at))}
+        select: %{
+          p
+          | comment_count: count(c.id) |> filter(is_nil(c.deleted_at)),
+            score:
+              fragment(
+                "coalesce(sum(distinct case ?.mode when 'upvote' then 1 when 'downvote' then -1 end), 0)",
+                pv
+              )
+        }
 
-    case Repo.one(post) do
+    query =
+      maybe_auth_query?(
+        query,
+        user_id,
+        &(&1
+          |> join(:left, [p], pv2 in PostVote, on: pv2.post_id == p.id and pv2.user_id == ^user_id)
+          |> select_merge([p, ..., pv2], %{user_voted: max(pv2.mode)}))
+      )
+
+    case Repo.one(query) do
       nil ->
         {:error, :not_found}
 
@@ -159,7 +202,7 @@ defmodule Discuss.Topics do
       {:ok, %Post{}}
 
       iex> update_post(post, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+      {:error, %Ecto
 
   """
   def update_post(%Post{} = post, attrs) do
@@ -195,6 +238,60 @@ defmodule Discuss.Topics do
   """
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
+  end
+
+  @doc """
+  Adds a vote to a post.
+  """
+  def add_vote_post(attrs)
+
+  def add_vote_post(%{mode: :neutral, post_id: post_id, user_id: user_id}) do
+    Repo.get_by(PostVote, post_id: post_id, user_id: user_id)
+    |> case do
+      nil ->
+        {:ok, nil}
+
+      vote ->
+        Repo.delete(vote)
+    end
+  end
+
+  def add_vote_post(%{mode: _, post_id: post_id, user_id: user_id} = attrs) do
+    result =
+      from(pv in PostVote, where: pv.post_id == ^post_id and pv.user_id == ^user_id)
+      |> Repo.one()
+      |> case do
+        nil ->
+          %PostVote{}
+
+        vote ->
+          vote
+      end
+      |> PostVote.changeset(attrs)
+      |> Repo.insert_or_update()
+
+    case result do
+      {:error, _} -> {:ok, nil}
+      vote -> {:ok, vote}
+    end
+  end
+
+  @doc """
+  Get post score
+  """
+  def get_post_score(post_id) do
+    query =
+      from p in PostVote,
+        where: p.post_id == ^post_id,
+        select: %{
+          score:
+            fragment(
+              "coalesce(sum(distinct case ?.mode when 'upvote' then 1 when 'downvote' then -1 end), 0)",
+              p
+            )
+        }
+
+    Repo.one(query)
   end
 
   @doc """

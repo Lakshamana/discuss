@@ -11,7 +11,7 @@ defmodule DiscussWeb.PostLive.Show do
       assign(socket, %{
         voted_up: false,
         voted_down: false,
-        post_vote_count: 0,
+        post_score: 0,
         is_commenting: false,
         post_comment_number: 0
       })
@@ -20,15 +20,20 @@ defmodule DiscussWeb.PostLive.Show do
 
   @impl true
   def handle_params(%{"slug" => slug}, _, socket) do
-    result = Topics.get_post_by_slug_with_comments(slug)
+    %{current_user: current_user} = socket.assigns
 
-    case result do
+    case Topics.get_post_by_slug_with_comments(slug, current_user && current_user.id) do
       {:ok, post} ->
         {:noreply,
          socket
          |> assign(:page_title, page_title(socket.assigns.live_action))
          |> stream(:comments, post.comments)
-         |> assign(:post, post || nil)}
+         |> assign(
+           post: post || nil,
+           post_score: post.score,
+           voted_up: post && post.user_voted == :upvote,
+           voted_down: post && post.user_voted == :downvote
+         )}
 
       _ ->
         {:noreply, socket |> put_flash(:error, "Post not found") |> push_navigate(to: ~p"/posts")}
@@ -40,42 +45,62 @@ defmodule DiscussWeb.PostLive.Show do
 
   @impl true
   def handle_event("upvote", _value, socket) do
-    %{post_vote_count: post_vote_count, voted_up: voted_up, voted_down: voted_down} =
-      socket.assigns
+    %{current_user: current_user} = socket.assigns
 
-    {
-      :noreply,
-      assign(socket, %{
-        voted_up: !socket.assigns.voted_up,
-        voted_down: false,
-        post_vote_count:
-          cond do
-            !voted_up && !voted_down -> post_vote_count + 1
-            voted_up && !voted_down -> post_vote_count - 1
-            true -> post_vote_count + 2
-          end
-      })
-    }
+    if !current_user do
+      redirect(socket, to: ~p"/users/log_in")
+    end
+
+    mode = if socket.assigns.voted_up, do: :neutral, else: :upvote
+
+    case Topics.add_vote_post(%{
+           mode: mode,
+           post_id: socket.assigns.post.id,
+           user_id: current_user.id
+         }) do
+      {:ok, _} ->
+        %{score: score} = Topics.get_post_score(socket.assigns.post.id)
+
+        {:noreply,
+         assign(socket, %{
+           voted_up: !socket.assigns.voted_up,
+           voted_down: false,
+           post_score: score
+         })}
+
+      _ ->
+        {:noreply, socket |> put_flash(:error, "Error upvoting")}
+    end
   end
 
   @impl true
   def handle_event("downvote", _value, socket) do
-    %{post_vote_count: post_vote_count, voted_up: voted_up, voted_down: voted_down} =
-      socket.assigns
+    %{current_user: current_user} = socket.assigns
 
-    {
-      :noreply,
-      assign(socket, %{
-        voted_up: false,
-        voted_down: !socket.assigns.voted_down,
-        post_vote_count:
-          cond do
-            !voted_up && !voted_down -> post_vote_count - 1
-            !voted_up && voted_down -> post_vote_count + 1
-            true -> post_vote_count - 2
-          end
-      })
-    }
+    if !current_user do
+      redirect(socket, to: ~p"/users/log_in")
+    end
+
+    mode = if socket.assigns.voted_down, do: :neutral, else: :downvote
+
+    case Topics.add_vote_post(%{
+           mode: mode,
+           post_id: socket.assigns.post.id,
+           user_id: current_user.id
+         }) do
+      {:ok, _} ->
+        %{score: score} = Topics.get_post_score(socket.assigns.post.id)
+
+        {:noreply,
+         assign(socket, %{
+           voted_down: !socket.assigns.voted_down,
+           voted_up: false,
+           post_score: score
+         })}
+
+      _ ->
+        {:noreply, socket |> put_flash(:error, "Error downvoting")}
+    end
   end
 
   @impl true
@@ -113,9 +138,12 @@ defmodule DiscussWeb.PostLive.Show do
 
   @impl true
   def handle_info(%{event: "delete_comment", post_id: _}, socket) do
-    {:ok, post} = Topics.get_post_by_slug_with_comments(socket.assigns.post.slug)
+    %{post: post, current_user: current_user} = socket.assigns
 
-    {:noreply, socket |> stream(:comments, post.comments)}
+    {:ok, result} =
+      Topics.get_post_by_slug_with_comments(post.slug, current_user && current_user.id)
+
+    {:noreply, socket |> stream(:comments, result.comments)}
   end
 
   @impl true

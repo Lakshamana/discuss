@@ -25,11 +25,19 @@ defmodule DiscussWeb.PostLive.PostComponent do
       <div class="flex flex-row justify-start mt-3 text-sm items-center">
         <div class="bg-default rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2">
           <button phx-click="voted_up" phx-target={@myself}>
-            <span class={["icon-arrow-up", (@voted_up || false) && "arrow-selected"]}></span>
+            <span class={[
+              "icon-arrow-up",
+              (@voted_up || false) && "arrow-selected"
+            ]}>
+            </span>
           </button>
-          <span class="post-vote-number">5</span>
+          <span class="post-vote-number"><%= @score || @post.score %></span>
           <button phx-click="voted_down" phx-target={@myself}>
-            <span class={["icon-arrow-down", (@voted_down || false) && "arrow-selected"]}></span>
+            <span class={[
+              "icon-arrow-down",
+              (@voted_down || false) && "arrow-selected"
+            ]}>
+            </span>
           </button>
         </div>
         <div class="bg-default rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-auto">
@@ -71,16 +79,56 @@ defmodule DiscussWeb.PostLive.PostComponent do
 
   @impl true
   def mount(socket) do
-    {:ok, assign(socket, %{voted_up: false, voted_down: false})}
+    {:ok,
+     assign(socket, %{
+       voted_up: false,
+       voted_down: false,
+       score: nil
+     })}
+  end
+
+  @impl true
+  def update(%{post: post, id: id}, socket) do
+    {:ok,
+     assign(socket,
+       post: post,
+       id: id,
+       voted_up: post && post.user_voted == :upvote,
+       voted_down: post && post.user_voted == :downvote
+     )}
   end
 
   @impl true
   def handle_event("voted_up", _value, socket) do
-    {:noreply, assign(socket, %{voted_up: !socket.assigns.voted_up, voted_down: false})}
+    mode = if socket.assigns.voted_up, do: :neutral, else: :upvote
+
+    notify_parent(%{
+      mode: mode,
+      post_id: socket.assigns.post.id,
+      define_score: fn score ->
+        assign(socket, score: score, voted_up: !socket.assigns.voted_up, voted_down: false)
+        {:noreply, socket}
+      end
+    })
+
+    {:noreply, socket}
   end
 
   @impl true
   def handle_event("voted_down", _value, socket) do
-    {:noreply, assign(socket, %{voted_up: false, voted_down: !socket.assigns.voted_down})}
+    mode = if socket.assigns.voted_down, do: :neutral, else: :downvote
+
+    notify_parent(%{
+      mode: mode,
+      post_id: socket.assigns.post.id,
+      define_score: fn score ->
+        assign(socket, score: score, voted_up: false, voted_down: !socket.assigns.voted_down)
+        {:noreply, socket}
+      end
+    })
+
+    {:noreply, socket}
   end
+
+  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

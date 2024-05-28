@@ -9,10 +9,11 @@ This is a simple, reddit-inspired, forum application built with Elixir and Phoen
 [x] Create, list, update and delete post comments (with counts)
 [x] Show/collapse child comments section
 [x] Add post and comment validation
-[] Post/comment votes (up/down voting strategy)
-[] Add User management system (authentication, authorization, etc.)
+[x] Add User management system (authentication, authorization, settings, etc.)
+[x] Post votes (up/down voting strategy)
+[] Comment votes (up/down voting strategy)
 [] Attach post and comments to its authors (so we know whether one can edit/delete a comment or post)
-[] User settings (enable only dark-mode by now)
+[] Dark mode
 [] Deployment?
 
 ## Contributing

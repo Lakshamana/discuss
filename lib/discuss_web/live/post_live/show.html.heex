@@ -17,7 +17,7 @@
       <button phx-click="upvote">
         <span class={["icon-arrow-up", (@voted_up || false) && "arrow-selected"]}></span>
       </button>
-      <span class="post-vote-number"><%= @post_vote_count %></span>
+      <span class="post-vote-number"><%= @post_score %></span>
       <button phx-click="downvote">
         <span class={["icon-arrow-down", (@voted_down || false) && "arrow-selected"]}></span>
       </button>
