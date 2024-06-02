@@ -74,6 +74,7 @@
           module={DiscussWeb.PostLive.CommentComponent}
           id={comment_id}
           comment={comment}
+          current_user={@current_user}
           on_delete={
             &send(self(), %{
               event: "delete_comment",

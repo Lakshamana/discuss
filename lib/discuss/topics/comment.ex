@@ -1,4 +1,5 @@
 defmodule Discuss.Topics.Comment do
+  alias Discuss.Topics.CommentVote
   alias Discuss.Topics.Comment
   use Ecto.Schema
   import Ecto.Changeset
@@ -11,7 +12,10 @@ defmodule Discuss.Topics.Comment do
     field :post_id, :binary_id
     field :deleted_at, :utc_datetime
     has_many :replies, Comment, foreign_key: :parent_id, references: :id
+    has_many :votes, CommentVote, foreign_key: :comment_id, references: :id
     field :reply_count, :integer, virtual: true
+    field :score, :integer, virtual: true
+    field :user_voted, Ecto.Enum, values: [:upvote, :downvote], virtual: true
 
     timestamps()
   end

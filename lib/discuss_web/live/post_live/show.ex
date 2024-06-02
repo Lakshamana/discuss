@@ -44,12 +44,13 @@ defmodule DiscussWeb.PostLive.Show do
   defp page_title(:edit), do: "Edit Post"
 
   @impl true
+  def handle_event(_event_name, _value, %{assigns: %{current_user: nil}} = socket) do
+    {:noreply, redirect(socket, to: ~p"/users/log_in")}
+  end
+
+  @impl true
   def handle_event("upvote", _value, socket) do
     %{current_user: current_user} = socket.assigns
-
-    if !current_user do
-      redirect(socket, to: ~p"/users/log_in")
-    end
 
     mode = if socket.assigns.voted_up, do: :neutral, else: :upvote
 
@@ -77,10 +78,6 @@ defmodule DiscussWeb.PostLive.Show do
   def handle_event("downvote", _value, socket) do
     %{current_user: current_user} = socket.assigns
 
-    if !current_user do
-      redirect(socket, to: ~p"/users/log_in")
-    end
-
     mode = if socket.assigns.voted_down, do: :neutral, else: :downvote
 
     case Topics.add_vote_post(%{
@@ -106,6 +103,10 @@ defmodule DiscussWeb.PostLive.Show do
   @impl true
   def handle_event("show_comment_textarea", _value, socket) do
     {:noreply, assign(socket, is_commenting: !socket.assigns.is_commenting)}
+  end
+
+  def handle_info(_event, %{assigns: %{current_user: nil}} = socket) do
+    {:noreply, redirect(socket, to: ~p"/users/log_in")}
   end
 
   @impl true

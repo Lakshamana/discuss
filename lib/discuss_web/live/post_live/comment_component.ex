@@ -68,7 +68,7 @@ defmodule DiscussWeb.PostLive.CommentComponent do
             <button phx-click="upvote" phx-target={@myself}>
               <span class={["icon-arrow-up", (@voted_up || false) && "arrow-selected"]}></span>
             </button>
-            <span class="post-vote-number"><%= @comment_votes %></span>
+            <span class="post-vote-number"><%= @score || @comment.score %></span>
             <button phx-click="downvote" phx-target={@myself}>
               <span class={["icon-arrow-down", (@voted_down || false) && "arrow-selected"]}></span>
             </button>
@@ -170,6 +170,7 @@ defmodule DiscussWeb.PostLive.CommentComponent do
                 comment={reply}
                 parent_comment_id={@comment.id}
                 level={@level + 1}
+                current_user={@current_user}
                 on_delete={
                   &send_update(DiscussWeb.PostLive.CommentComponent, id: @id, deleted_comment: &1)
                 }
@@ -197,7 +198,7 @@ defmodule DiscussWeb.PostLive.CommentComponent do
        voted_down: false,
        parent_comment_id: nil,
        on_delete: if(socket.assigns[:on_delete], do: socket.assigns.on_delete, else: nil),
-       comment_votes: 0
+       score: nil
      )}
   end
 
@@ -208,6 +209,10 @@ defmodule DiscussWeb.PostLive.CommentComponent do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(
+       voted_up: comment && comment.user_voted == :upvote,
+       voted_down: comment && comment.user_voted == :downvote
+     )
      |> assign_form(changeset)}
   end
 
@@ -216,6 +221,24 @@ defmodule DiscussWeb.PostLive.CommentComponent do
     replies = Topics.get_replies_for_comment(socket.assigns.comment.id)
 
     {:ok, socket |> assign(replies: replies)}
+  end
+
+  @impl true
+  def handle_event("show_replies", _value, socket) do
+    %{current_user: current_user, comment: comment} = socket.assigns
+
+    replies = Topics.get_replies_for_comment(comment.id, current_user && current_user.id)
+
+    {:noreply,
+     assign(socket,
+       show_replies: !socket.assigns.show_replies,
+       replies: replies
+     )}
+  end
+
+  @impl true
+  def handle_event(_event_name, _value, %{assigns: %{current_user: nil}} = socket) do
+    {:noreply, redirect(socket, to: ~p"/users/log_in")}
   end
 
   @impl true
@@ -246,53 +269,51 @@ defmodule DiscussWeb.PostLive.CommentComponent do
 
   @impl true
   def handle_event("upvote", _value, socket) do
-    %{comment_votes: comment_votes, voted_up: voted_up, voted_down: voted_down} =
-      socket.assigns
+    mode = if socket.assigns.voted_up, do: :neutral, else: :upvote
 
-    {
-      :noreply,
-      assign(socket, %{
-        voted_up: !socket.assigns.voted_up,
-        voted_down: false,
-        comment_votes:
-          cond do
-            !voted_up && !voted_down -> comment_votes + 1
-            voted_up && !voted_down -> comment_votes - 1
-            true -> comment_votes + 2
-          end
-      })
-    }
+    case Topics.add_vote_comment(%{
+           mode: mode,
+           comment_id: socket.assigns.comment.id,
+           user_id: socket.assigns.current_user.id
+         }) do
+      {:ok, _} ->
+        %{score: score} = Topics.get_comment_score(socket.assigns.comment.id)
+        {:noreply,
+         assign(
+           socket,
+           voted_up: !socket.assigns.voted_up,
+           voted_down: false,
+           score: score
+         )}
+
+      _ ->
+        {:noreply, socket |> put_flash(:error, "Error upvoting comment")}
+    end
   end
 
   @impl true
   def handle_event("downvote", _value, socket) do
-    %{comment_votes: comment_votes, voted_up: voted_up, voted_down: voted_down} =
-      socket.assigns
+    mode = if socket.assigns.voted_down, do: :neutral, else: :downvote
 
-    {
-      :noreply,
-      assign(socket, %{
-        voted_up: false,
-        voted_down: !socket.assigns.voted_down,
-        comment_votes:
-          cond do
-            !voted_up && !voted_down -> comment_votes - 1
-            !voted_up && voted_down -> comment_votes + 1
-            true -> comment_votes - 2
-          end
-      })
-    }
-  end
+    case Topics.add_vote_comment(%{
+           mode: mode,
+           comment_id: socket.assigns.comment.id,
+           user_id: socket.assigns.current_user.id
+         }) do
+      {:ok, _} ->
+        %{score: score} = Topics.get_comment_score(socket.assigns.comment.id)
 
-  @impl true
-  def handle_event("show_replies", _value, socket) do
-    replies = Topics.get_replies_for_comment(socket.assigns.comment.id)
+        {:noreply,
+         assign(
+           socket,
+           voted_down: !socket.assigns.voted_down,
+           voted_up: false,
+           score: score
+         )}
 
-    {:noreply,
-     assign(socket,
-       show_replies: !socket.assigns.show_replies,
-       replies: replies
-     )}
+      _ ->
+        {:noreply, socket |> put_flash(:error, "Error upvoting comment")}
+    end
   end
 
   @impl true

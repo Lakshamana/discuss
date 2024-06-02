@@ -4,7 +4,7 @@ defmodule Discuss.Topics do
   """
 
   import Ecto.Query, warn: false
-  alias Discuss.Topics.PostVote
+  alias Discuss.Topics.{PostVote, CommentVote}
   alias Discuss.Repo
 
   alias Discuss.Topics.{Post, Comment}
@@ -47,7 +47,9 @@ defmodule Discuss.Topics do
         query,
         user_id,
         &(&1
-          |> join(:left, [p], pv2 in PostVote, on: pv2.post_id == p.id and pv2.user_id == ^user_id)
+          |> join(:left, [p], pv2 in PostVote,
+            on: pv2.post_id == p.id and pv2.user_id == ^user_id
+          )
           |> select_merge([p, ..., pv2], %{user_voted: max(pv2.mode)}))
       )
 
@@ -112,11 +114,30 @@ defmodule Discuss.Topics do
   def get_post_by_slug_with_comments(slug, user_id \\ nil) do
     comments_replies_count =
       from c in Comment,
-        left_join: r in assoc(c, :replies),
-        on: r.parent_id == c.id,
+        left_join: r in assoc(c, :replies), on: r.parent_id == c.id,
+        left_join: cv in assoc(c, :votes), on: cv.comment_id == c.id,
         where: is_nil(c.parent_id),
         group_by: c.id,
-        select: %{c | reply_count: count(r.id)}
+        select: %{
+          c
+          | reply_count: count(r.id) |> filter(is_nil(r.deleted_at)),
+            score:
+              fragment(
+                "coalesce(sum(distinct case ?.mode when 'upvote' then 1 when 'downvote' then -1 end), 0)",
+                cv
+              )
+        }
+
+    comments_replies_count =
+      maybe_auth_query?(
+        comments_replies_count,
+        user_id,
+        &(&1
+          |> join(:left, [c], cv2 in CommentVote,
+            on: cv2.comment_id == c.id and cv2.user_id == ^user_id
+          )
+          |> select_merge([c, ..., cv2], %{user_voted: max(cv2.mode)}))
+      )
 
     query =
       from p in Post,
@@ -140,7 +161,9 @@ defmodule Discuss.Topics do
         query,
         user_id,
         &(&1
-          |> join(:left, [p], pv2 in PostVote, on: pv2.post_id == p.id and pv2.user_id == ^user_id)
+          |> join(:left, [p], pv2 in PostVote,
+            on: pv2.post_id == p.id and pv2.user_id == ^user_id
+          )
           |> select_merge([p, ..., pv2], %{user_voted: max(pv2.mode)}))
       )
 
@@ -163,14 +186,33 @@ defmodule Discuss.Topics do
     iex> get_replies_for_comment(<comment_id)
             []
   """
-  def get_replies_for_comment(comment_id) do
+  def get_replies_for_comment(comment_id, user_id \\ nil) do
     query =
       from c in Comment,
-        left_join: r in assoc(c, :replies),
-        on: r.parent_id == c.id,
+        left_join: r in assoc(c, :replies), on: r.parent_id == c.id,
+        left_join: cv in assoc(c, :votes), on: cv.comment_id == c.id,
         where: c.parent_id == ^comment_id,
         group_by: c.id,
-        select: %{c | reply_count: count(r.id) |> filter(not is_nil(r.id))}
+        select: %{
+          c
+          | reply_count: count(r.id) |> filter(not is_nil(r.id)),
+            score:
+              fragment(
+                "coalesce(sum(distinct case ?.mode when 'upvote' then 1 when 'downvote' then -1 end), 0)",
+                cv
+              )
+        }
+
+    query =
+      maybe_auth_query?(
+        query,
+        user_id,
+        &(&1
+          |> join(:left, [c], cv2 in CommentVote,
+            on: cv2.comment_id == c.id and cv2.user_id == ^user_id
+          )
+          |> select_merge([c, ..., cv2], %{user_voted: max(cv2.mode)}))
+      )
 
     Repo.all(query)
   end
@@ -241,6 +283,42 @@ defmodule Discuss.Topics do
   end
 
   @doc """
+  Adds a vote to a comment.
+  """
+  def add_vote_comment(attrs)
+
+  def add_vote_comment(%{mode: :neutral, comment_id: comment_id, user_id: user_id}) do
+    Repo.get_by(CommentVote, comment_id: comment_id, user_id: user_id)
+    |> case do
+      nil ->
+        {:ok, nil}
+
+      vote ->
+        Repo.delete(vote)
+    end
+  end
+
+  def add_vote_comment(%{mode: _, comment_id: comment_id, user_id: user_id} = attrs) do
+    result =
+      from(cv in CommentVote, where: cv.comment_id == ^comment_id and cv.user_id == ^user_id)
+      |> Repo.one()
+      |> case do
+        nil ->
+          %CommentVote{}
+
+        vote ->
+          vote
+      end
+      |> CommentVote.changeset(attrs)
+      |> Repo.insert_or_update()
+
+    case result do
+      {:error, _} -> {:ok, nil}
+      vote -> {:ok, vote}
+    end
+  end
+
+  @doc """
   Adds a vote to a post.
   """
   def add_vote_post(attrs)
@@ -272,7 +350,7 @@ defmodule Discuss.Topics do
 
     case result do
       {:error, _} -> {:ok, nil}
-      vote -> {:ok, vote}
+      vote -> vote
     end
   end
 
@@ -288,6 +366,24 @@ defmodule Discuss.Topics do
             fragment(
               "coalesce(sum(distinct case ?.mode when 'upvote' then 1 when 'downvote' then -1 end), 0)",
               p
+            )
+        }
+
+    Repo.one(query)
+  end
+
+  @doc """
+  Get comment score
+  """
+  def get_comment_score(comment_id) do
+    query =
+      from cv in CommentVote,
+        where: cv.comment_id == ^comment_id,
+        select: %{
+          score:
+            fragment(
+              "coalesce(sum(distinct case ?.mode when 'upvote' then 1 when 'downvote' then -1 end), 0)",
+              cv
             )
         }
 

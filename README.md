@@ -11,7 +11,7 @@ This is a simple, reddit-inspired, forum application built with Elixir and Phoen
 [x] Add post and comment validation
 [x] Add User management system (authentication, authorization, settings, etc.)
 [x] Post votes (up/down voting strategy)
-[] Comment votes (up/down voting strategy)
+[x] Comment votes (up/down voting strategy)
 [] Attach post and comments to its authors (so we know whether one can edit/delete a comment or post)
 [] Dark mode
 [] Deployment?

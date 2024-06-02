@@ -104,11 +104,7 @@ defmodule DiscussWeb.PostLive.PostComponent do
 
     notify_parent(%{
       mode: mode,
-      post_id: socket.assigns.post.id,
-      define_score: fn score ->
-        assign(socket, score: score, voted_up: !socket.assigns.voted_up, voted_down: false)
-        {:noreply, socket}
-      end
+      post_id: socket.assigns.post.id
     })
 
     {:noreply, socket}
@@ -120,11 +116,7 @@ defmodule DiscussWeb.PostLive.PostComponent do
 
     notify_parent(%{
       mode: mode,
-      post_id: socket.assigns.post.id,
-      define_score: fn score ->
-        assign(socket, score: score, voted_up: false, voted_down: !socket.assigns.voted_down)
-        {:noreply, socket}
-      end
+      post_id: socket.assigns.post.id
     })
 
     {:noreply, socket}
