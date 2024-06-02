@@ -1,7 +1,7 @@
 <.header>
   Listing Posts
   <:actions>
-    <.link href={~p"/posts/new"}>
+    <.link :if={@current_user} href={~p"/posts/new"}>
       <.button>
         <span class="flex items-center space-x-1 justify-center">
           <span class="flex mr-xs">
@@ -32,6 +32,7 @@
         module={DiscussWeb.PostLive.PostComponent}
         id={post_id}
         post={post}
+        current_user={@current_user}
       />
     </li>
   </ul>

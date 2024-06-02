@@ -115,8 +115,11 @@ defmodule DiscussWeb.PostLive.CommentComponent do
             <div class="options-menu__drawer">
               <ul role="list" class="cursor-pointer">
                 <li
-                  class="flex justify-between items-center pb-1 hover:bg-default"
-                  phx-click="edit_comment"
+                  class={[
+                    "flex justify-between items-center pb-1 hover:bg-default",
+                    (@comment.deleted_at || !@current_user) && "btn-disabled"
+                  ]}
+                  phx-click={@current_user && !@comment.deleted_at && JS.push("edit_comment")}
                   phx-target={@myself}
                 >
                   <div class="flex space-x-1 items-center p-2">
@@ -127,14 +130,14 @@ defmodule DiscussWeb.PostLive.CommentComponent do
                 <li
                   class={[
                     "flex justify-between items-center hover:bg-default",
-                    @comment.deleted_at && "btn-disabled"
+                    (@comment.deleted_at || !@current_user) && "btn-disabled"
                   ]}
                   phx-click={
-                    !@comment.deleted_at &&
+                    @current_user && !@comment.deleted_at &&
                       JS.push("delete", value: %{id: @comment.id}) |> hide("##{@id}")
                   }
                   phx-target={@myself}
-                  data-confirm={!@comment.deleted_at && "Are you sure?"}
+                  data-confirm={@current_user && !@comment.deleted_at && "Are you sure?"}
                 >
                   <div class="flex space-x-1 items-center p-2">
                     <span class="icon-post-delete"></span>
@@ -278,6 +281,7 @@ defmodule DiscussWeb.PostLive.CommentComponent do
          }) do
       {:ok, _} ->
         %{score: score} = Topics.get_comment_score(socket.assigns.comment.id)
+
         {:noreply,
          assign(
            socket,

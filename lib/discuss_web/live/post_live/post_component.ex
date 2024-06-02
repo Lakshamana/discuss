@@ -51,8 +51,11 @@ defmodule DiscussWeb.PostLive.PostComponent do
           </label>
           <div class="options-menu__drawer border rounded-md">
             <ul role="list" class="cursor-pointer">
-              <li class="flex justify-between items-center pb-1 hover:bg-default">
-                <.link patch={~p"/posts/#{@post.slug}/edit"}>
+              <li class={[
+                "flex justify-between items-center pb-1 hover:bg-default",
+                !@current_user && "btn-disabled"
+              ]}>
+                <.link :if={@current_user} patch={~p"/posts/#{@post.slug}/edit"}>
                   <div class="flex space-x-1 items-center p-2">
                     <span class="icon-post-edit"></span>
                     <span class="text-sm">Edit</span>
@@ -60,11 +63,16 @@ defmodule DiscussWeb.PostLive.PostComponent do
                 </.link>
               </li>
               <li
-                class="flex justify-between items-center hover:bg-default"
-                phx-click={JS.push("delete", value: %{id: @post.id}) |> hide("##{@id}")}
-                data-confirm="Are you sure?"
+                class={[
+                  "flex justify-between items-center hover:bg-default",
+                  !@current_user && "btn-disabled"
+                ]}
+                phx-click={
+                  @current_user && JS.push("delete", value: %{id: @post.id}) |> hide("##{@id}")
+                }
+                data-confirm={@current_user && !@comment.deleted_at && "Are you sure?"}
               >
-                <div class="flex space-x-1 items-center p-2">
+                <div class={["flex space-x-1 items-center p-2", !@current_user && "disabled-btn"]}>
                   <span class="icon-post-delete"></span>
                   <span class="text-sm">Delete</span>
                 </div>
@@ -83,7 +91,8 @@ defmodule DiscussWeb.PostLive.PostComponent do
      assign(socket, %{
        voted_up: false,
        voted_down: false,
-       score: nil
+       score: nil,
+       current_user: nil
      })}
   end
 

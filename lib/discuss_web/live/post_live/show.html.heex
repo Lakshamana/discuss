@@ -33,13 +33,17 @@
       </label>
       <div class="options-menu__drawer border rounded-md">
         <ul role="list" class="cursor-pointer">
-          <li class="flex justify-between items-center pb-1 hover:bg-default">
-            <.link patch={~p"/posts/#{@post.slug}/show/edit"}>
-              <div class="flex space-x-1 items-center p-2 mx-2">
-                <span class="icon-post-edit"></span>
-                <span class="text-sm">Edit</span>
-              </div>
-            </.link>
+          <li
+            class={[
+              "flex justify-between items-center pb-1 hover:bg-default",
+              !@current_user && "btn-disabled"
+            ]}
+            phx-click={@current_user && JS.push("edit_post")}
+          >
+            <div class="flex space-x-1 items-center p-2 mx-2">
+              <span class="icon-post-edit"></span>
+              <span class="text-sm">Edit</span>
+            </div>
           </li>
         </ul>
       </div>

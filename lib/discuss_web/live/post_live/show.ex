@@ -48,6 +48,10 @@ defmodule DiscussWeb.PostLive.Show do
     {:noreply, redirect(socket, to: ~p"/users/log_in")}
   end
 
+  def handle_event("edit_post", _params, socket) do
+    {:noreply, push_patch(socket, to: ~p"/posts/#{socket.assigns.post.slug}/show/edit")}
+  end
+
   @impl true
   def handle_event("upvote", _value, socket) do
     %{current_user: current_user} = socket.assigns
