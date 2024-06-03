@@ -65,11 +65,11 @@ defmodule DiscussWeb.PostLive.CommentComponent do
             "bg-default rounded-full border-0 px-3 space-x-1 flex items-center relative py-1 outline-none mr-2",
             @comment.deleted_at && "btn-disabled"
           ]}>
-            <button phx-click="upvote" phx-target={@myself}>
+            <button phx-click={!@comment.deleted_at && JS.push("upvote")} phx-target={@myself}>
               <span class={["icon-arrow-up", (@voted_up || false) && "arrow-selected"]}></span>
             </button>
             <span class="post-vote-number"><%= @score || @comment.score %></span>
-            <button phx-click="downvote" phx-target={@myself}>
+            <button phx-click={!@comment.deleted_at && JS.push("downvote")} phx-target={@myself}>
               <span class={["icon-arrow-down", (@voted_down || false) && "arrow-selected"]}></span>
             </button>
           </div>
