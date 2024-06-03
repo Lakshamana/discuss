@@ -317,7 +317,7 @@ defmodule DiscussWeb.PostLive.CommentComponent do
          )}
 
       _ ->
-        {:noreply, socket |> put_flash(:error, "Error upvoting comment")}
+        {:noreply, socket |> put_flash(:error, "Error downvoting comment")}
     end
   end
 
