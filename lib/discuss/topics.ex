@@ -120,7 +120,7 @@ defmodule Discuss.Topics do
         group_by: c.id,
         select: %{
           c
-          | reply_count: count(r.id) |> filter(is_nil(r.deleted_at)),
+          | reply_count: count(r.id),
             score:
               fragment(
                 "coalesce(sum(distinct case ?.mode when 'upvote' then 1 when 'downvote' then -1 end), 0)",
@@ -195,7 +195,7 @@ defmodule Discuss.Topics do
         group_by: c.id,
         select: %{
           c
-          | reply_count: count(r.id) |> filter(not is_nil(r.id)),
+          | reply_count: count(r.id),
             score:
               fragment(
                 "coalesce(sum(distinct case ?.mode when 'upvote' then 1 when 'downvote' then -1 end), 0)",

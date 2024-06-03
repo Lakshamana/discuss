@@ -221,7 +221,8 @@ defmodule DiscussWeb.PostLive.CommentComponent do
 
   @impl true
   def update(%{deleted_comment: _child_comment}, socket) do
-    replies = Topics.get_replies_for_comment(socket.assigns.comment.id)
+    %{comment: comment, current_user: current_user} = socket.assigns
+    replies = Topics.get_replies_for_comment(comment.id, current_user && current_user.id)
 
     {:ok, socket |> assign(replies: replies)}
   end
