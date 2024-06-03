@@ -70,7 +70,7 @@ defmodule DiscussWeb.PostLive.PostComponent do
                 phx-click={
                   @current_user && JS.push("delete", value: %{id: @post.id}) |> hide("##{@id}")
                 }
-                data-confirm={@current_user && !@comment.deleted_at && "Are you sure?"}
+                data-confirm="Are you sure?"
               >
                 <div class={["flex space-x-1 items-center p-2", !@current_user && "disabled-btn"]}>
                   <span class="icon-post-delete"></span>
@@ -97,11 +97,12 @@ defmodule DiscussWeb.PostLive.PostComponent do
   end
 
   @impl true
-  def update(%{post: post, id: id}, socket) do
+  def update(%{post: post, id: id, current_user: current_user}, socket) do
     {:ok,
      assign(socket,
        post: post,
        id: id,
+       current_user: current_user,
        voted_up: post && post.user_voted == :upvote,
        voted_down: post && post.user_voted == :downvote
      )}

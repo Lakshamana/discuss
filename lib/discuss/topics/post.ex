@@ -10,6 +10,7 @@ defmodule Discuss.Topics.Post do
     field :title, :string
     field :body, :string
     field :slug, :string
+    field :deleted_at, :utc_datetime
     has_many :comments, Comment, foreign_key: :post_id, references: :id
     has_many :votes, PostVote, foreign_key: :post_id, references: :id
     field :comment_count, :integer, virtual: true
@@ -55,7 +56,7 @@ defmodule Discuss.Topics.Post do
   @doc false
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:title, :slug, :body])
+    |> cast(attrs, [:title, :slug, :body, :deleted_at])
     |> validate_required([:title, :slug, :body])
     |> unique_constraint(:slug)
   end

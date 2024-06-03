@@ -31,6 +31,7 @@ defmodule Discuss.Topics do
       from p in Post,
         left_join: c in assoc(p, :comments), on: c.post_id == p.id,
         left_join: pv in assoc(p, :votes), on: pv.post_id == p.id,
+        where: is_nil(p.deleted_at),
         group_by: p.id,
         select_merge: %{
           p
@@ -266,7 +267,9 @@ defmodule Discuss.Topics do
 
   """
   def delete_post(%Post{} = post) do
-    Repo.delete(post)
+    post
+    |> Post.changeset(%{deleted_at: DateTime.utc_now()})
+    |> Repo.update()
   end
 
   @doc """
